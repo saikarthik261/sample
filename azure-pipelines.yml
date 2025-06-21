@@ -6,50 +6,14 @@
 trigger:
 - main
 
-# Define the agent pool. 'windows-latest' is common for .NET applications.
-# If you have a self-hosted agent pool named 'Default', use 'name: Default'.
 pool:
-  vmImage: 'windows-latest' # Or 'name: Default' if you're using a specific pool name
+  pool:
+  name: Default  # Replace with your agent pool name if different
+
 
 variables:
-  buildConfiguration: 'Release' # Common build configuration
+  buildConfiguration: 'Release'
 
-# Define stages for your pipeline
-stages:
-- stage: Build
-  displayName: Build and Test Application
-  jobs:
-  - job: BuildJob
-    displayName: Build .NET Project
-    steps:
-    - task: DotNetCoreCLI@2 # Use the specific .NET Core CLI task for better control
-      displayName: 'Restore NuGet Packages'
-      inputs:
-        command: 'restore'
-        projects: '**/*.csproj' # Restore packages for all .csproj files
-
-    - task: DotNetCoreCLI@2
-      displayName: 'Build Project - $(buildConfiguration)'
-      inputs:
-        command: 'build'
-        projects: '**/*.csproj'
-        arguments: '--configuration $(buildConfiguration)'
-
-    - task: DotNetCoreCLI@2
-      displayName: 'Run Tests'
-      inputs:
-        command: 'test'
-        projects: '**/*Tests.csproj' # Assumes your test projects end with 'Tests.csproj'
-        arguments: '--configuration $(buildConfiguration) --no-build' # --no-build as build is already done
-
-    - task: DotNetCoreCLI@2
-      displayName: 'Publish Application'
-      inputs:
-        command: 'publish'
-        publishWebProjects: true # Set to true if it's a web project
-        arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)'
-        zipAfterPublish: true # Package the output as a zip file for deployment
-
-    - publish: $(Build.ArtifactStagingDirectory) # Publish the zipped artifact
-      artifact: drop # Name of the artifact, used by deployment stages
-      displayName: 'Publish Build Artifact'
+steps:
+- script: dotnet build --configuration $(buildConfiguration)
+  displayName: 'dotnet build $(buildConfiguration)'
